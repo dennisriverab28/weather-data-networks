@@ -1,0 +1,13 @@
+﻿# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Large data files
+Weather_data.csv
+output.csv
+
+# OS
+.DS_Store
+Thumbs.db
