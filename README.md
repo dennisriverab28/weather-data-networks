@@ -1,89 +1,83 @@
-# Weather Data Networks Project
+<p align="center">
+  <img src="docs/banner.svg" alt="Weather Data Networks" width="100%">
+</p>
 
-**Course:** ECE 3325 — Computer Networks, Texas Tech University  
-**Stack:** Python · TCP Sockets
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/TCP_Sockets-1F6FEB" alt="TCP Sockets">
+  <img src="https://img.shields.io/badge/stdlib_only-555" alt="Standard library only">
+  <img src="https://img.shields.io/badge/status-complete-22c55e" alt="Status">
+</p>
+
+<p align="center">
+  A client–server application that defines its own <b>WX application-layer protocol</b> over raw TCP.
+  The client encodes a large weather-station dataset into WX packets and streams them; the<br>
+  server validates each packet, acknowledges it, and persists accepted records to CSV.
+</p>
+
+<p align="center">
+  <i>ECE 3325 — Computer Networks, Texas Tech University</i>
+</p>
 
 ---
 
-## Overview
+## ✨ What it does
 
-A client-server application implementing a custom application-layer protocol (`WX`) over TCP. The client reads a large weather station CSV dataset, encodes each record into a `WX`-format packet, and streams it to the server over a TCP connection. The server validates each packet and writes accepted records to an output CSV file.
+- 📡 **Custom WX protocol** — a newline-terminated application-layer format over raw TCP sockets.
+- 🧾 **CSV → packet encoding** — the client reads each weather record and encodes it, skipping
+  incomplete or malformed rows.
+- ✅ **Server-side validation** — the server parses every packet, replies `OK` / `ERR`, and writes
+  valid records to `output.csv`.
+- 🔁 **Stop-and-wait streaming** — the client waits for each acknowledgment before sending the next
+  record, then prints a delivered-vs-skipped summary.
+- ⌨️ **Interactive command loop** — after transmission the client stays connected for commands
+  (e.g. `QUIT`).
 
----
+## 📦 WX packet format
 
-## Custom Protocol — WX Format
-
-```
+```text
 WX|StationID|Date|Temperature|Condition\n
 ```
 
-- Each packet is a newline-terminated string
-- Server responds `OK\n` for valid packets, `ERR\n` for invalid ones
-- Client streams all records sequentially, waits for acknowledgment before sending the next
+Server replies `OK\n` for a valid packet, `ERR\n` for an invalid one.
 
----
+## 🏗 Architecture
 
-## Features
-
-- Custom application-layer protocol over raw TCP sockets
-- CSV-to-packet encoding with validation (skips incomplete/malformed rows)
-- Server-side packet parsing, validation, and CSV persistence
-- Transmission summary (delivered vs. skipped counts)
-- Interactive client command loop post-transmission (supports `QUIT`)
-
----
-
-## Project Structure
-
+```mermaid
+flowchart LR
+    CSV[(Weather_data.csv)] --> CLI[client_side.py]
+    CLI -->|WX packets · TCP :23456| SRV[server_side.py]
+    SRV -->|OK / ERR ack| CLI
+    SRV --> OUT[(output.csv)]
 ```
-Weather_Networks_Project/
+
+## 🗂 Project structure
+
+```text
 ├── server_side.py      # TCP server — listens, validates, writes output.csv
-├── client_side.py      # TCP client — reads CSV, encodes + sends WX packets
-├── data/
-│   └── README_data.md  # Notes on required data files (excluded from repo)
-└── README.md
+├── client_side.py      # TCP client — reads CSV, encodes + streams WX packets
+└── data/
+    └── README_data.md  # Notes on the data files (excluded from the repo)
 ```
 
----
+## 🚀 Setup & run
 
-## Setup & Run
+Python 3.x, standard library only — no packages to install. Place `Weather_data.csv` in the
+project root (see [`data/README_data.md`](data/README_data.md)).
 
-### Requirements
-- Python 3.x (standard library only — no additional packages needed)
-- `Weather_data.csv` placed in the project root (see `data/README_data.md`)
-
-### Run the Server (first)
 ```bash
+# Terminal 1 — start the server first (listens on :23456, writes output.csv)
 python server_side.py
-```
-Server listens on port `23456`. Writes valid records to `output.csv`.
 
-### Run the Client (second, in a separate terminal)
-```bash
-python client_side.py <server_ip>
-```
-Example (same machine):
-```bash
+# Terminal 2 — run the client against the server's IP
 python client_side.py 127.0.0.1
 ```
 
----
+## 🧰 Stack
 
-## How It Works
-
-1. **Server starts** and binds to `0.0.0.0:23456`, waits for a client connection.
-2. **Client connects** and reads `Weather_data.csv` row by row.
-3. For each row, the client builds a `WX|...` packet and sends it over TCP.
-4. The server validates the packet format and writes valid entries to `output.csv`, responding `OK` or `ERR`.
-5. After all rows are sent, the client prints a transmission summary and enters an interactive command loop.
-
----
-
-## Data Files
-
-Large data files are excluded from the repository. See [`data/README_data.md`](data/README_data.md) for details.
-
-| File | Size | Notes |
-|------|------|-------|
-| `Weather_data.csv` | ~37 MB | Input dataset — place in project root |
-| `output.csv` | ~4 MB | Generated by server at runtime |
+| Layer | Tech |
+| ----- | ---- |
+| Language | Python 3 (standard library only) |
+| Transport | Raw TCP sockets |
+| Protocol | Custom WX application-layer format |
+| Persistence | CSV (`output.csv`) |
